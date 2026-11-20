@@ -42,13 +42,16 @@ def on_startup():
     db = SessionLocal()
     try:
         if db.query(func.count(Account.account_id)).scalar() == 0:
-                        sample_accounts = [
-                Account(account_id=f"ACC000000{i}", fraud_probability=round(0.94 - (i * 0.06), 4),
-                        anomaly_score=round(0.91 - (i * 0.05), 4),
-                        risk_level="CRITICAL" if i <= 3 else ("HIGH" if i <= 6 else "MEDIUM"),
-                        ring_id="RING_1230" if i <= 5 else "RING_0318",
-                        ring_size=5 if i <= 5 else 4,
-                        action_recommended="FREEZE_ACCOUNT_AND_TRIGGER_AML_AUDIT" if i <= 3 else "STEP_UP_AUTHENTICATION_AND_TRANSACTION_LIMIT")
+            sample_accounts = [
+                Account(
+                    account_id=f"ACC000000{i}",
+                    fraud_probability=round(0.94 - (i * 0.06), 4),
+                    anomaly_score=round(0.91 - (i * 0.05), 4),
+                    risk_level="CRITICAL" if i <= 3 else ("HIGH" if i <= 6 else "MEDIUM"),
+                    ring_id="RING_1230" if i <= 5 else "RING_0318",
+                    ring_size=5 if i <= 5 else 4,
+                    action_recommended="FREEZE_ACCOUNT_AND_TRIGGER_AML_AUDIT" if i <= 3 else "STEP_UP_AUTHENTICATION_AND_TRANSACTION_LIMIT"
+                )
                 for i in range(1, 10)
             ]
             db.add_all(sample_accounts)
@@ -62,8 +65,14 @@ def on_startup():
                 NetworkEdge(account_a="ACC0000007", account_b="ACC0000008", shared_type="RAPID_TRANSFER", connection_count=5),
             ])
             db.add_all([
-                TransactionRecord(tx_id=f"TX_{1000+i}", source=f"ACC000000{i}", target=f"ACC000000{(i%8)+1}",
-                                  amount=18500.0 * i, timestamp=f"2026-11-1{i} 14:20:00", is_suspicious=True)
+                TransactionRecord(
+                    tx_id=f"TX_{1000+i}",
+                    source=f"ACC000000{i}",
+                    target=f"ACC000000{(i%8)+1}",
+                    amount=18500.0 * i,
+                    timestamp=f"2026-11-1{i} 14:20:00",
+                    is_suspicious=True
+                )
                 for i in range(1, 9)
             ])
             db.add_all([
