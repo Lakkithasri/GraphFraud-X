@@ -9,6 +9,8 @@ import {
 
 cytoscape.use(cola);
 
+const API_BASE = import.meta.env.VITE_API_URL || `${API_BASE}`;
+
 export default function App() {
   const [overview, setOverview] = useState(null);
   const [topRings, setTopRings] = useState([]);
@@ -49,14 +51,14 @@ export default function App() {
 
   const fetchOverview = async () => {
     try {
-      const res = await axios.get('http://127.0.0.1:8000/api/v1/analytics/overview');
+      const res = await axios.get(`${API_BASE}/api/v1/analytics/overview`);
       setOverview(res.data);
     } catch (e) {}
   };
 
   const fetchTopRings = async () => {
     try {
-      const res = await axios.get('http://127.0.0.1:8000/api/v1/rings/top?limit=8');
+      const res = await axios.get(`${API_BASE}/api/v1/rings/top?limit=8`);
       setTopRings(res.data);
       if (res.data.length > 0 && !selectedRingId) setSelectedRingId(res.data[0].ring_id);
     } catch (e) {}
@@ -64,14 +66,14 @@ export default function App() {
 
   const fetchClusters = async () => {
     try {
-      const res = await axios.get('http://127.0.0.1:8000/api/v1/clusters?limit=8');
+      const res = await axios.get(`${API_BASE}/api/v1/clusters?limit=8`);
       setClusters(res.data.clusters || []);
     } catch (e) {}
   };
 
   const fetchTrends = async () => {
     try {
-      const res = await axios.get('http://127.0.0.1:8000/api/v1/analytics/trends');
+      const res = await axios.get(`${API_BASE}/api/v1/analytics/trends`);
       setTrends(res.data);
     } catch (e) {}
   };
@@ -80,7 +82,7 @@ export default function App() {
     if (!accId) return;
     setLoadingHistory(true);
     try {
-      const res = await axios.get(`http://127.0.0.1:8000/api/v1/accounts/${accId}/transactions`);
+      const res = await axios.get(`${API_BASE}/api/v1/accounts/${accId}/transactions`);
       setAccountHistory(res.data);
     } catch (e) {
       setAccountHistory(null);
@@ -94,7 +96,7 @@ export default function App() {
     setSearchError('');
     fetchAccountHistory(accId);
     try {
-      const res = await axios.get(`http://127.0.0.1:8000/api/v1/account/${accId}`);
+      const res = await axios.get(`${API_BASE}/api/v1/account/${accId}`);
       setAccountResult(res.data);
     } catch (err) {
       setSearchError(err.response?.data?.detail || 'Account details loaded in ledger below.');
@@ -104,7 +106,7 @@ export default function App() {
   const loadRingGraph = async (ringId) => {
     setLoadingGraph(true);
     try {
-      const res = await axios.get(`http://127.0.0.1:8000/api/v1/rings/${ringId}/graph`);
+      const res = await axios.get(`${API_BASE}/api/v1/rings/${ringId}/graph`);
       const graphData = res.data;
       const elements = [];
       graphData.nodes.forEach((n) =>
@@ -192,7 +194,7 @@ export default function App() {
       if (parsedValues.length !== 27) {
         throw new Error(`Expected 27 features, got ${parsedValues.length}.`);
       }
-      const res = await axios.post('http://127.0.0.1:8000/api/v1/predict/account', {
+      const res = await axios.post(`${API_BASE}/api/v1/predict/account`, {
         account_id: simAccountId.trim() || 'TEST_ACCOUNT',
         features: parsedValues
       });
