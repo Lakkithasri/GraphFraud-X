@@ -38,6 +38,48 @@ MODEL_CONFIG = ModelConfig()
 @app.on_event("startup")
 def on_startup():
     init_tables()
+    from api.database import SessionLocal
+    db = SessionLocal()
+    try:
+        if db.query(func.count(Account.account_id)).scalar() == 0:
+            if paths.processed_dir.exists() and (paths.processed_dir / "account_predictions.csv").exists():
+                from pipeline.init_db import migrate_all
+                migrate_all()
+            else:
+                sample_accounts = [
+                    Account(account_id=f"ACC000000{i}", fraud_probability=round(0.94 - (i * 0.06), 4),
+                            anomaly_score=round(0.91 - (i * 0.05), 4),
+                            risk_level="CRITICAL" if i <= 3 else ("HIGH" if i <= 6 else "MEDIUM"),
+                            ring_id="RING_1230" if i <= 5 else "RING_0318",
+                            ring_size=5 if i <= 5 else 4,
+                            action_recommended="FREEZE_ACCOUNT_AND_TRIGGER_AML_AUDIT" if i <= 3 else "STEP_UP_AUTHENTICATION_AND_TRANSACTION_LIMIT")
+                    for i in range(1, 10)
+                ]
+                db.add_all(sample_accounts)
+                db.add_all([
+                    NetworkEdge(account_a="ACC0000001", account_b="ACC0000002", shared_type="SHARED_DEVICE", connection_count=6),
+                    NetworkEdge(account_a="ACC0000002", account_b="ACC0000003", shared_type="RAPID_TRANSFER", connection_count=4),
+                    NetworkEdge(account_a="ACC0000003", account_b="ACC0000004", shared_type="SHARED_IP", connection_count=5),
+                    NetworkEdge(account_a="ACC0000004", account_b="ACC0000005", shared_type="SHARED_DEVICE", connection_count=3),
+                    NetworkEdge(account_a="ACC0000001", account_b="ACC0000005", shared_type="CIRCULAR_FLOW", connection_count=7),
+                    NetworkEdge(account_a="ACC0000006", account_b="ACC0000007", shared_type="SHARED_IP", connection_count=4),
+                    NetworkEdge(account_a="ACC0000007", account_b="ACC0000008", shared_type="RAPID_TRANSFER", connection_count=5),
+                ])
+                db.add_all([
+                    TransactionRecord(tx_id=f"TX_{1000+i}", source=f"ACC000000{i}", target=f"ACC000000{(i%8)+1}",
+                                      amount=18500.0 * i, timestamp=f"2026-11-1{i} 14:20:00", is_suspicious=True)
+                    for i in range(1, 9)
+                ])
+                db.add_all([
+                    ActivityTrend(granularity="daily", period=f"2026-11-1{d}", fraud_count=42 + d * 5, normal_count=1200 + d * 30, fraud_volume=485000.0 + d * 42000)
+                    for d in range(1, 8)
+                ] + [
+                    ActivityTrend(granularity="weekly", period=f"Week {w}", fraud_count=280 + w * 25, normal_count=8400 + w * 150, fraud_volume=3200000.0 + w * 210000)
+                    for w in range(1, 5)
+                ])
+                db.commit()
+    finally:
+        db.close()
 
 
 def get_inference_resources():
