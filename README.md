@@ -1,5 +1,7 @@
 # GraphFraud-X
 
+> **Live Demo Dashboard:** [https://graphfraud-x.vercel.app](https://graphfraud-x.vercel.app)  
+
 **Graph Neural Network (GraphSAGE) Financial Fraud Detection & Coordinated Ring Intelligence Platform**
 
 GraphFraud-X models financial networks across **50,000 monitored accounts** and **1,000,000+ transactions** as a heterogeneous interaction graph to uncover coordinated money-laundering syndicates that traditional tabular models miss.
@@ -61,6 +63,7 @@ python -m pipeline.init_db
 uvicorn api.app:app --reload
 ```
 API Health Check: http://127.0.0.1:8000/api/v1/health
+
 ---
 ### 2. Frontend Dashboard Setup
 
@@ -70,4 +73,5 @@ npm install
 npm run dev
 ```
 Dashboard URL: http://localhost:5174
+
 ---
